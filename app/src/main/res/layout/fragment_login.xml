@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".UI.LoginFragment">
+
+    <GridLayout
+        android:id="@+id/gridLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:columnCount="2"
+        android:rowCount="8">
+
+        <TextView
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Server Host: "
+            android:id="@+id/HostTextView"
+            android:layout_marginEnd="6dp"
+            android:padding="0dp"
+            android:layout_gravity="right"/>
+
+        <EditText
+            android:inputType="text"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:id="@+id/HostEditText"
+            android:layout_margin="0dp"
+            android:padding="0dp"/>
+
+        <TextView
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Server Port: "
+            android:id="@+id/PortTextView"
+            android:layout_marginEnd="6dp"
+            android:padding="0dp"
+            android:layout_gravity="right"/>
+
+        <EditText
+            android:inputType="text"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:id="@+id/PortEditText"
+            android:layout_margin="0dp"
+            android:padding="0dp" />
+
+        <TextView
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Username: "
+            android:id="@+id/UsernameTextView"
+            android:layout_marginEnd="6dp"
+            android:padding="0dp"
+            android:layout_gravity="right"/>
+
+        <EditText
+            android:inputType="text"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:id="@+id/UsernameEditText"
+            android:layout_weight="1"
+            android:layout_margin="0dp"
+            android:padding="0dp"/>
+
+        <TextView
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Password: "
+            android:id="@+id/PasswordTextView"
+            android:layout_marginEnd="6dp"
+            android:padding="0dp"
+            android:layout_gravity="right"/>
+
+        <EditText
+            android:inputType="textPassword"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:id="@+id/PasswordEditText"
+            android:layout_margin="0dp"
+            android:padding="0dp"/>
+
+        <TextView
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="First Name: "
+            android:id="@+id/FirstNameTextView"
+            android:layout_marginEnd="6dp"
+            android:padding="0dp"
+            android:layout_gravity="right"/>
+
+        <EditText
+            android:inputType="text"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:id="@+id/FirstNameEditText"
+            android:layout_weight="1"
+            android:layout_margin="0dp"
+            android:padding="0dp"/>
+
+        <TextView
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Last Name: "
+            android:id="@+id/LastNameTextView"
+            android:layout_marginRight="6dp"
+            android:padding="0dp"
+            android:layout_gravity="right"/>
+
+        <EditText
+            android:inputType="text"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:id="@+id/LastNameEditText"
+            android:layout_margin="0dp"
+            android:padding="0dp"/>
+
+        <TextView
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Email: "
+            android:id="@+id/EmailTextView"
+            android:layout_marginEnd="6dp"
+            android:padding="0dp"
+            android:layout_gravity="right"/>
+
+        <EditText
+            android:inputType="text"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:id="@+id/EmailEditText"
+            android:layout_margin="0dp"
+            android:padding="0dp"/>
+
+        <TextView
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Gender: "
+            android:id="@+id/GenderTextView"
+            android:layout_marginEnd="6dp"
+            android:padding="0dp"
+            android:layout_gravity="right"/>
+
+
+        <RadioGroup
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:orientation="horizontal"
+            android:id="@+id/gender">
+
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:id="@+id/isMale"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Male"
+                android:layout_marginBottom="5dp"/>
+
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:id="@+id/isFemale"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Female"/>
+
+
+        </RadioGroup>
+
+        <!--<LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/isMale"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Male"/>
+
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/isFemale"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Female"/>
+
+
+        </LinearLayout>-->
+
+
+
+    </GridLayout>
+
+    <LinearLayout
+        android:id="@+id/buttonHolder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/gridLayout">
+
+        <Button
+            android:id="@+id/loginButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Login"/>
+
+        <Button
+            android:id="@+id/registerButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Register"/>
+    </LinearLayout>
+
+
+</RelativeLayout>
