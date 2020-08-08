@@ -14,9 +14,30 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="placeholder"/>
+        android:layout_height="120dp"
+        android:id="@+id/infoBox"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:background="#CCCCCC">
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="match_parent"
+            android:id="@+id/boxIcon"
+            android:layout_gravity="center">
+        </ImageView>
+
+        <TextView
+            android:id="@+id/eventText"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:textSize="5mm"
+            android:text="Click on a marker to see event details"
+            android:gravity="center"/>
+
+
+    </LinearLayout>
 
 </RelativeLayout>

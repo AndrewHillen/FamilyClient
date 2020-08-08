@@ -122,6 +122,8 @@ public class DataCache
 
 
 
+
+
     //Process all of the data
     public void processData(PersonUserResult persons, EventUserResult events)
     {
@@ -219,11 +221,13 @@ public class DataCache
 
         if(userPerson.getFatherID() != null)
         {
+            fatherSide.add(userPerson.getFatherID());
             addToSide(userPerson.getFatherID(), fatherSide);
         }
 
         if(userPerson.getMotherID() != null)
         {
+            motherSide.add(userPerson.getMotherID());
             addToSide(userPerson.getMotherID(), motherSide);
         }
 

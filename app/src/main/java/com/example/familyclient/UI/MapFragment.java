@@ -1,16 +1,18 @@
 package com.example.familyclient.UI;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.util.EventLog;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
 
@@ -25,14 +27,15 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.joanzapata.iconify.IconDrawable;
-import com.joanzapata.iconify.Iconify;
 import com.joanzapata.iconify.fonts.FontAwesomeIcons;
-import com.joanzapata.iconify.fonts.FontAwesomeModule;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import Model.Event;
@@ -51,6 +54,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private HashMap<String, Person> persons;
     private Settings settings;
     private HashMap<String, Float> eventColors;
+    private ArrayList<Polyline> polyLines;
+    private HashMap<String, List<Event>> personEvents;
+
+    ImageView iconView;
+    TextView eventText;
+    LinearLayout infoBox;
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -60,10 +69,16 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+    private Event passInEvent;
 
     public MapFragment()
     {
         // Required empty public constructor
+    }
+
+    public MapFragment(Event e)
+    {
+        passInEvent = e;
     }
 
     /**
@@ -135,13 +150,73 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
         // Inflate the layout for this fragment
+
+        iconView = (ImageView) v.findViewById(R.id.boxIcon);
+        eventText = (TextView) v.findViewById(R.id.eventText);
+
+        Drawable icon = new IconDrawable(getActivity(), FontAwesomeIcons.fa_android).color(4900419).sizeDp(40);
+
+        iconView.setImageDrawable(icon);
+
+        infoBox = (LinearLayout) v.findViewById(R.id.infoBox);
+
         return v;
     }
 
     @Override
     public void onMapLoaded()
     {
+        map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener () {
 
+            @Override
+            public boolean onMarkerClick(Marker marker)
+            {
+                Event markerEvent = (Event) marker.getTag();
+                clearPolyLines();
+                drawPolyLines(markerEvent);
+
+                centerEvent(markerEvent);
+
+
+                return true;
+            }
+        });
+    }
+
+    private void centerEvent(Event markerEvent)
+    {
+        Person markerPerson = persons.get(markerEvent.getPersonID());
+
+        String newText = markerPerson.getFirstName() + " " + markerPerson.getLastName() + "\n";
+        newText = newText + markerEvent.getEventType() + ": " + markerEvent.getCity() + ", "
+                + markerEvent.getCountry() + " (" + markerEvent.getYear() + ")";
+
+        eventText.setText(newText);
+
+        Drawable icon;
+
+        if(markerPerson.getGender().equals("m"))
+        {
+            icon = new IconDrawable(getActivity(), FontAwesomeIcons.fa_male).color(2847675).sizeDp(40);
+        }
+        else
+        {
+            icon = new IconDrawable(getActivity(), FontAwesomeIcons.fa_female).color(12743611).sizeDp(40);
+        }
+
+        iconView.setImageDrawable(icon);
+
+        infoBox.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                personActivityOpener();
+                //TODO PAss in a person I suppose
+            }
+        });
+
+        map.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(markerEvent.getLatitude(), markerEvent.getLongitude())));
     }
 
     @Override
@@ -151,15 +226,263 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         map = googleMap;
         map.setOnMapLoadedCallback(this);
 
-
         populateMap();
+
+
+        if(passInEvent != null)
+        {
+            centerEvent(passInEvent);
+        }
 
 
     }
 
+    private void clearPolyLines()
+    {
+        if(polyLines != null)
+        {
+            for(int i = 0; i < polyLines.size(); i++)
+            {
+                polyLines.get(i).remove();
+            }
+        }
+
+        polyLines = new ArrayList<>();
+    }
+
+    private void drawPolyLines(Event event)
+    {
+        if(!event.getPersonID().equals(DataCache.getInstance().getUserID()))
+        {
+            drawFamilyTreeLines(event, 1);
+        }
+
+        else
+        {
+            //TODO Ask about line specifics. father side/ no male means don't draw unconnected lines to grandmothers on fathers side?
+            handleUserEvent(event);
+        }
+        drawSpouseLine(event);
+    }
+
+    private void handleUserEvent(Event event)
+    {
+        String userID = DataCache.getInstance().getUserID();
+        Person user = persons.get(userID);
+        Event fatherEvent = null;
+        Event motherEvent = null;
+
+        int fatherWidth = 0;
+        int motherWidth = 0;
+
+        if(user.getFatherID() != null && settings.isFatherSide())
+        {
+            ArrayList<Event> fatherEvents = (ArrayList<Event>) personEvents.get(user.getFatherID());
+
+            if(fatherEvents.size() > 0)
+            {
+                fatherEvent = fatherEvents.get(0);
+                fatherWidth = drawFamilyTreeLines(fatherEvent, 1);
+            }
+        }
+
+        if(user.getMotherID() != null && settings.isMotherSide())
+        {
+            ArrayList<Event> motherEvents = (ArrayList<Event>) personEvents.get(user.getMotherID());
+
+            if(motherEvents.size() > 0)
+            {
+                motherEvent = motherEvents.get(0);
+                motherWidth = drawFamilyTreeLines(motherEvent, 1);
+            }
+        }
+
+        int thisWidth = fatherWidth > motherWidth ? fatherWidth : motherWidth;
+
+        if(fatherEvent != null && settings.isShowMale())
+        {
+            Polyline fatherLine = map.addPolyline(new PolylineOptions()
+                    .clickable(true)
+                    .add(
+                            new LatLng(event.getLatitude(), event.getLongitude()),
+                            new LatLng(fatherEvent.getLatitude(), fatherEvent.getLongitude()))
+                    .width(thisWidth)
+                    .color(Color.BLUE)
+                    .visible(true));
+
+
+            polyLines.add(fatherLine);
+        }
+
+        if(motherEvent != null && settings.isShowFemale())
+        {
+            Polyline motherLine = map.addPolyline(new PolylineOptions()
+                    .clickable(true)
+                    .add(
+                            new LatLng(event.getLatitude(), event.getLongitude()),
+                            new LatLng(motherEvent.getLatitude(), motherEvent.getLongitude()))
+                    .width(thisWidth)
+                    .color(Color.BLUE)
+                    .visible(true));
+
+            polyLines.add(motherLine);
+        }
+    }
+
+    private void drawSpouseLine(Event event)
+    {
+        Person person = persons.get(event.getPersonID());
+        Event spouseEvent = null;
+        if(person.getSpouseID() != null)
+        {
+            Person spouse = persons.get(person.getSpouseID());
+
+            if( (spouse.getGender().equals("m") && settings.isShowMale() ) || ( spouse.getGender().equals("f") && settings.isShowFemale() ) )
+            {
+                ArrayList<Event> spouseEvents = (ArrayList<Event>) personEvents.get(spouse.getId());
+
+                if(spouseEvents.size() > 0)
+                {
+                    spouseEvent = spouseEvents.get(0);
+                }
+            }
+        }
+
+        if(spouseEvent != null)
+        {
+            if(DataCache.getInstance().getFatherSide().contains(spouseEvent.getPersonID()) && settings.isFatherSide())
+            {
+                Polyline spouseLine = map.addPolyline(new PolylineOptions()
+                        .clickable(true)
+                        .add(
+                                new LatLng(event.getLatitude(), event.getLongitude()),
+                                new LatLng(spouseEvent.getLatitude(), spouseEvent.getLongitude()))
+                        .width(7)
+                        .color(Color.RED)
+                        .visible(true));
+
+
+                polyLines.add(spouseLine);
+            }
+
+            if(DataCache.getInstance().getMotherSide().contains(spouseEvent.getPersonID()) && settings.isMotherSide())
+            {
+                Polyline spouseLine = map.addPolyline(new PolylineOptions()
+                        .clickable(true)
+                        .add(
+                                new LatLng(event.getLatitude(), event.getLongitude()),
+                                new LatLng(spouseEvent.getLatitude(), spouseEvent.getLongitude()))
+                        .width(7)
+                        .color(Color.RED)
+                        .visible(true));
+
+
+                polyLines.add(spouseLine);
+            }
+        }
+
+    }
+
+
+    private int drawFamilyTreeLines(Event event, int width)
+    {
+        int thisWidth = 0;
+        Person child = persons.get(event.getPersonID());
+
+        Event fatherEvent = null;
+        Event motherEvent = null;
+
+        int fatherWidth = 0;
+        int motherWidth = 0;
+
+        if(child.getFatherID() != null)
+        {
+            ArrayList<Event> fatherEvents = (ArrayList<Event>) personEvents.get(child.getFatherID());
+
+            if(fatherEvents.size() > 0)
+            {
+                fatherEvent = fatherEvents.get(0);
+                int returnWidth = drawFamilyTreeLines(fatherEvent, width);
+
+                if(returnWidth > fatherWidth)
+                {
+                    fatherWidth = returnWidth;
+                }
+            }
+        }
+
+        if(child.getMotherID() != null)
+        {
+            ArrayList<Event> motherEvents = (ArrayList<Event>) personEvents.get(child.getMotherID());
+
+            if(motherEvents.size() > 0)
+            {
+                motherEvent = motherEvents.get(0);
+                int returnWidth = drawFamilyTreeLines(motherEvent, width);
+
+                if(returnWidth > motherWidth)
+                {
+                    motherWidth = returnWidth;
+                }
+            }
+        }
+
+        thisWidth = fatherWidth > motherWidth ? fatherWidth : motherWidth;
+        thisWidth = thisWidth > width ? thisWidth : width;
+
+        if(fatherEvent != null && settings.isShowMale())
+        {
+            Polyline fatherLine = map.addPolyline(new PolylineOptions()
+                    .clickable(true)
+                    .add(
+                    new LatLng(event.getLatitude(), event.getLongitude()),
+                    new LatLng(fatherEvent.getLatitude(), fatherEvent.getLongitude()))
+            .width(fatherWidth)
+            .color(Color.BLUE)
+            .visible(true));
+
+
+            polyLines.add(fatherLine);
+        }
+
+        if(motherEvent != null && settings.isShowFemale())
+        {
+            Polyline motherLine = map.addPolyline(new PolylineOptions()
+                    .clickable(true)
+                    .add(
+                            new LatLng(event.getLatitude(), event.getLongitude()),
+                            new LatLng(motherEvent.getLatitude(), motherEvent.getLongitude()))
+                    .width(motherWidth)
+                    .color(Color.BLUE)
+                    .visible(true));
+
+            polyLines.add(motherLine);
+        }
+
+        return thisWidth + 3;
+
+
+        //Find parent events if exist
+        //pass width, and parent event into this function recursively. return width + 3 to pass into child width line
+        //
+    }
+
+    private void drawLifeStoryLines(Event event)
+    {
+
+    }
+
+
+
     private void settingsActivityOpener()
     {
         Intent intent = new Intent(getActivity(), SettingsActivity.class);
+        startActivity(intent);
+    }
+
+    private void personActivityOpener()
+    {
+        Intent intent = new Intent(getActivity(), PersonActivity.class);
         startActivity(intent);
     }
 
@@ -171,7 +494,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         events = DataCache.getInstance().getEvents();
         settings = DataCache.getInstance().getSettings();
         eventColors = DataCache.getInstance().getEventColors();
-        String userID = DataCache.getInstance().getUserID();
+        personEvents = DataCache.getInstance().getPersonEvents();
 
         if(settings.isFatherSide())
         {
@@ -183,12 +506,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             addSide(DataCache.getInstance().getMotherSide());
         }
 
-        List<Event> userEvents = DataCache.getInstance().getPersonEvents().get(userID);
-
-        for(int i = 0; i < userEvents.size(); i++)
-        {
-            genderCheck(userEvents.get(i));
-        }
+        allOtherEvents();
     }
 
     private void addSide(Set<String> side)
@@ -231,11 +549,25 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                 .icon(BitmapDescriptorFactory.defaultMarker(markerColor)));
 
         newMarker.setTag(event);
+
     }
 
-    //TODO Add polylines to stuff. All Events should be bound to markers for click events. Maybe can set click listeners on the fly?
+    private void allOtherEvents()
+    {
+        Set<String> fatherSide = DataCache.getInstance().getFatherSide();
+        Set<String> motherSide = DataCache.getInstance().getMotherSide();
 
-    //Get all events
-    //if father, add all father events to map (if male, if female)
-    //if mother, add all mother events to map (if male, if female)
+        for(Map.Entry<String, List<Event>> entry : personEvents.entrySet())
+        {
+            if(!fatherSide.contains(entry.getKey()) && !motherSide.contains(entry.getKey()))
+            {
+                ArrayList<Event> eventList = (ArrayList) entry.getValue();
+                for(int i = 0; i < eventList.size(); i++)
+                {
+                    genderCheck(eventList.get(i));
+                }
+            }
+        }
+    }
+
 }
