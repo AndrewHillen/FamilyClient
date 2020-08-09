@@ -183,7 +183,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         });
     }
 
-    private void centerEvent(Event markerEvent)
+    private void centerEvent(final Event markerEvent)
     {
         Person markerPerson = persons.get(markerEvent.getPersonID());
 
@@ -211,7 +211,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             @Override
             public void onClick(View view)
             {
-                personActivityOpener();
+                personActivityOpener(markerEvent);
                 //TODO PAss in a person I suppose
             }
         });
@@ -480,9 +480,19 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         startActivity(intent);
     }
 
-    private void personActivityOpener()
+    private void personActivityOpener(Event e)
     {
         Intent intent = new Intent(getActivity(), PersonActivity.class);
+        Bundle b = new Bundle();
+
+        //Find family and eventList with personID
+        b.putString("personID", e.getPersonID());
+        //Bundle b = new Bundle();
+        //if only allows primitive values, personID and eventID is enough to find stuff
+        //b.put("family", familyList);
+        //b.put("events", eventList);
+        //intent.putExtras(b)
+        intent.putExtras(b);
         startActivity(intent);
     }
 
