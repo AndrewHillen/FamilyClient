@@ -252,7 +252,7 @@ public class DataCache
     {
         for(Map.Entry<String, Event> entry : events.entrySet())
         {
-            String eventType = entry.getValue().getEventType();
+            String eventType = entry.getValue().getEventType().toLowerCase();
             if(!eventColors.containsKey(eventType))
             {
                 eventColors.put(eventType, mapColorGenerator.getColorFloat());

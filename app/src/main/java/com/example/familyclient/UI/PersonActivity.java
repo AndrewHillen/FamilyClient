@@ -81,10 +81,13 @@ public class PersonActivity extends AppCompatActivity
             family.add(DataCache.getInstance().getPersons().get(person.getSpouseID()));
         }
 
-        for(int i = 0; i < children.size(); i++)
+        if(children != null)
         {
-            relationships.put(children.get(i).getId(), "Child");
-            family.add(children.get(i));
+            for (int i = 0; i < children.size(); i++)
+            {
+                relationships.put(children.get(i).getId(), "Child");
+                family.add(children.get(i));
+            }
         }
 
         return family;

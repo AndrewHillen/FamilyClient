@@ -1,9 +1,11 @@
 package com.example.familyclient.UI;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -14,7 +16,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import com.example.familyclient.Model.DataCache;
 import com.example.familyclient.Model.Settings;
@@ -70,6 +74,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     private String mParam1;
     private String mParam2;
     private Event passInEvent;
+    private Event currentEvent;
 
     public MapFragment()
     {
@@ -111,12 +116,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
     }
-    @Override
+    /*@Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater)
     {
 
         super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.fragment_map, menu);
+        inflater.inflate(R.menu.activity_main, menu);
         settingsItem = menu.findItem(R.id.mapFragmentSettings);
         Drawable settingsIcon = new IconDrawable(getActivity(), FontAwesomeIcons.fa_gear).sizeDp(40);
         settingsItem.setIcon(settingsIcon);
@@ -129,18 +134,30 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
                 return false;
             }
         });
-    }
+    }*/
     @Override
     public void onResume()
     {
 
         super.onResume();
         //Log.d("onResume", "Onresume called");
-        if(map != null)
+        if(passInEvent == null)
         {
-            populateMap();
+            if (map != null)
+            {
+                populateMap();
+            }
+
+            if(currentEvent != null)
+            {
+                if(currentEventChecker(currentEvent))
+                {
+                    drawPolyLines(currentEvent);
+                }
+            }
         }
     }
+    //TODO Events not case sensitive Lower font size in map details
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -177,10 +194,38 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
                 centerEvent(markerEvent);
 
+                currentEvent = markerEvent;
 
                 return true;
             }
         });
+    }
+
+    private boolean currentEventChecker(Event event)
+    {
+        String personID = event.getPersonID();
+
+        Person person = persons.get(personID);
+
+        if(person.getGender().equals("m") && !settings.isShowMale())
+        {
+            return false;
+        }
+        if(person.getGender().equals("f") && !settings.isShowFemale())
+        {
+            return false;
+        }
+        if(DataCache.getInstance().getFatherSide().contains(personID) && !settings.isFatherSide())
+        {
+            return false;
+        }
+
+        if(DataCache.getInstance().getMotherSide().contains(personID) && !settings.isMotherSide())
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private void centerEvent(final Event markerEvent)
@@ -232,6 +277,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         if(passInEvent != null)
         {
             centerEvent(passInEvent);
+            clearPolyLines();
+            drawPolyLines(passInEvent);
         }
 
 
@@ -254,15 +301,24 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
     {
         if(!event.getPersonID().equals(DataCache.getInstance().getUserID()))
         {
-            drawFamilyTreeLines(event, 1);
+            if(settings.isFamilyTreeLines())
+            {
+                drawFamilyTreeLines(event, 1);
+            }
         }
 
         else
         {
-            //TODO Ask about line specifics. father side/ no male means don't draw unconnected lines to grandmothers on fathers side?
-            handleUserEvent(event);
+
+            if(settings.isFamilyTreeLines())
+            {
+                handleUserEvent(event);
+            }
         }
-        drawSpouseLine(event);
+        if(settings.isSpouseLines())
+        {
+            drawSpouseLine(event);
+        }
     }
 
     private void handleUserEvent(Event event)
@@ -275,7 +331,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         int fatherWidth = 0;
         int motherWidth = 0;
 
-        if(user.getFatherID() != null && settings.isFatherSide())
+        if(user.getFatherID() != null && settings.isFatherSide() && settings.isShowMale())
         {
             ArrayList<Event> fatherEvents = (ArrayList<Event>) personEvents.get(user.getFatherID());
 
@@ -286,7 +342,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             }
         }
 
-        if(user.getMotherID() != null && settings.isMotherSide())
+        if(user.getMotherID() != null && settings.isMotherSide() && settings.isShowFemale())
         {
             ArrayList<Event> motherEvents = (ArrayList<Event>) personEvents.get(user.getMotherID());
 
@@ -366,6 +422,21 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
             }
 
             if(DataCache.getInstance().getMotherSide().contains(spouseEvent.getPersonID()) && settings.isMotherSide())
+            {
+                Polyline spouseLine = map.addPolyline(new PolylineOptions()
+                        .clickable(true)
+                        .add(
+                                new LatLng(event.getLatitude(), event.getLongitude()),
+                                new LatLng(spouseEvent.getLatitude(), spouseEvent.getLongitude()))
+                        .width(7)
+                        .color(Color.RED)
+                        .visible(true));
+
+
+                polyLines.add(spouseLine);
+            }
+
+            if(!DataCache.getInstance().getMotherSide().contains(spouseEvent.getPersonID()) && !DataCache.getInstance().getFatherSide().contains(spouseEvent.getPersonID()))
             {
                 Polyline spouseLine = map.addPolyline(new PolylineOptions()
                         .clickable(true)
@@ -474,11 +545,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
 
 
-    private void settingsActivityOpener()
+    /*private void settingsActivityOpener()
     {
         Intent intent = new Intent(getActivity(), SettingsActivity.class);
         startActivity(intent);
-    }
+    }*/
 
     private void personActivityOpener(Event e)
     {
@@ -550,7 +621,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
     private void addMarker(Event event)
     {
-        float markerColor = eventColors.get(event.getEventType());
+        float markerColor = eventColors.get(event.getEventType().toLowerCase());
         LatLng markerLocation = new LatLng(event.getLatitude(), event.getLongitude());
 
         Marker newMarker = map.addMarker(

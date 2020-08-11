@@ -6,8 +6,11 @@ import com.example.familyclient.Model.DataCache;
 import com.example.familyclient.Model.Settings;
 import com.example.familyclient.R;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.CompoundButton;
+import android.widget.LinearLayout;
 import android.widget.Switch;
 
 public class SettingsActivity extends AppCompatActivity
@@ -20,6 +23,7 @@ public class SettingsActivity extends AppCompatActivity
     Switch motherSide;
     Switch maleEvents;
     Switch femaleEvents;
+    LinearLayout logout;
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -33,6 +37,7 @@ public class SettingsActivity extends AppCompatActivity
         motherSide = findViewById(R.id.motherSide);
         maleEvents = findViewById(R.id.maleEvents);
         femaleEvents = findViewById(R.id.femaleEvents);
+        logout = findViewById(R.id.logoutClick);
         initializeSwitches();
 
         lifeStoryLines.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
@@ -111,6 +116,20 @@ public class SettingsActivity extends AppCompatActivity
             );
         }
     });
+
+        logout.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                Intent intent = new Intent();
+                intent.putExtra("Restart", true);
+                setResult(RESULT_OK, intent);
+                finish();
+            }
+        });
+
+
 
     }
 

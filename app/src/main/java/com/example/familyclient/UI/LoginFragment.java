@@ -3,7 +3,9 @@ package com.example.familyclient.UI;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -138,6 +140,8 @@ public class LoginFragment extends Fragment implements Listener
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d("Fragment entered", "here");
+
     }
 
     @Override

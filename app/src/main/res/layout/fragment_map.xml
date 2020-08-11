@@ -33,7 +33,7 @@
             android:id="@+id/eventText"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:textSize="5mm"
+            android:textSize="3mm"
             android:text="Click on a marker to see event details"
             android:gravity="center"/>
 
