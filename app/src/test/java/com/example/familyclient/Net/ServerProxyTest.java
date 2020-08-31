@@ -27,6 +27,7 @@ public class ServerProxyTest
     }
 
     @Test
+
     public void registerUser()
     {
         assertEquals("localhost", ServerProxy.getInstance().getHostName());
@@ -43,7 +44,24 @@ public class ServerProxyTest
         RegisterResult result = ServerProxy.getInstance().registerUser(request);
 
         assertNotNull(result);
+        assertTrue(result.isSuccess());
 
+    }
+
+    @Test
+    public void badRegister()
+    {
+        RegisterRequest request = new RegisterRequest();
+        request.setUserName("username");
+        request.setPassword("password");
+        request.setFirstName("first");
+        request.setLastName("last");
+        request.setEmail("email");
+        request.setGender("f");
+
+        RegisterResult result = ServerProxy.getInstance().registerUser(request);
+
+        assertFalse(result.isSuccess());
     }
 
     @Test
@@ -57,6 +75,18 @@ public class ServerProxyTest
 
         assertTrue(result.isSuccess());
 
+    }
+
+    @Test
+    public void badLogin()
+    {
+        LoginRequest request = new LoginRequest();
+        request.setUserName("username");
+        request.setPassword("password2");
+
+        LoginResult result = ServerProxy.getInstance().loginUser(request);
+
+        assertFalse(result.isSuccess());
     }
 
     @Test

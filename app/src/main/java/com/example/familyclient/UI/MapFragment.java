@@ -319,6 +319,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
         {
             drawSpouseLine(event);
         }
+
+        if(settings.isLifeStoryLines())
+        {
+            drawLifeStoryLines(event);
+        }
     }
 
     private void handleUserEvent(Event event)
@@ -540,7 +545,24 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleM
 
     private void drawLifeStoryLines(Event event)
     {
+        List<Event> lifeStory = personEvents.get(event.getPersonID());
 
+        if(lifeStory.size() > 1)
+        {
+            for(int i = 0; i < lifeStory.size() - 1; i++)
+            {
+                Polyline storyLine = map.addPolyline(new PolylineOptions()
+                        .clickable(true)
+                        .add(
+                                new LatLng(lifeStory.get(i).getLatitude(), lifeStory.get(i).getLongitude()),
+                                new LatLng(lifeStory.get(i + 1).getLatitude(), lifeStory.get(i + 1).getLongitude()))
+                        .width(6)
+                        .color(Color.GREEN)
+                        .visible(true));
+
+                polyLines.add(storyLine);
+            }
+        }
     }
 
 

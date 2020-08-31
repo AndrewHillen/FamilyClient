@@ -5,4 +5,9 @@
         android:title="Settings"
         android:id="@+id/mapFragmentSettings"
         app:showAsAction="ifRoom|withText"/>
+
+    <item
+        android:title="Search"
+        android:id="@+id/mapFragmentSearch"
+        app:showAsAction="ifRoom|withText"/>
 </menu>

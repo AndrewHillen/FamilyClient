@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity implements Listener
     private LoginFragment loginFragment;
     private MapFragment mapFragment;
     private MenuItem settingsItem;
+    private MenuItem searchItem;
     boolean onLogin;
 
     @Override
@@ -102,9 +103,24 @@ public class MainActivity extends AppCompatActivity implements Listener
                 return false;
             }
         });
+
+        searchItem = menu.findItem(R.id.mapFragmentSearch);
+
+        Drawable searchIcon = new IconDrawable(this, FontAwesomeIcons.fa_search).sizeDp(40);
+        searchItem.setIcon(searchIcon);
+        searchItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener()
+        {
+            @Override
+            public boolean onMenuItemClick(MenuItem menuItem)
+            {
+                searchActivityOpener();
+                return false;
+            }
+        });
         if(onLogin)
         {
             settingsItem.setVisible(false);
+            searchItem.setVisible(false);
         }
         return true;
     }
@@ -113,6 +129,12 @@ public class MainActivity extends AppCompatActivity implements Listener
     {
         Intent intent = new Intent(this, SettingsActivity.class);
         startActivityForResult(intent, 0);
+    }
+
+    private void searchActivityOpener()
+    {
+        Intent intent = new Intent(this, SearchActivity.class);
+        startActivity(intent);
     }
 
     @Override

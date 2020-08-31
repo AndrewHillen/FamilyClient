@@ -30,6 +30,10 @@ import Model.Person;
 public class PersonActivity extends AppCompatActivity
 {
 
+    TextView firstName;
+    TextView lastName;
+    TextView gender;
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -38,17 +42,43 @@ public class PersonActivity extends AppCompatActivity
         setContentView(R.layout.activity_person);
         Bundle b = getIntent().getExtras();
 
+        firstName = findViewById(R.id.firstName);
+        lastName = findViewById(R.id.lastName);
+        gender = findViewById(R.id.personGender);
+
         if(b!= null)
         {
             String personID = b.getString("personID");
             HashMap<String, String> relationships = new HashMap<>();
 
+
+            Person person = DataCache.getInstance().getPersons().get(personID);
+
+            String genderString = "";
+
+            if(person.getGender().equals("m"))
+            {
+                genderString = "Male";
+            }
+            if(person.getGender().equals("f"))
+            {
+                genderString = "Female";
+            }
+
+            firstName.setText(person.getFirstName());
+            lastName.setText(person.getLastName());
+            gender.setText(genderString);
+
+
             List<Person> family = buildFamily(relationships, personID);
             //Call functions to create personList and eventList
             ExpandableListView expandableListView = findViewById(R.id.expandableListView);
 
-            List<Event> events = DataCache.getInstance().getPersonEvents().get(personID);
-
+            List<Event> events = new ArrayList<>();
+            if(settingsChecker(personID))
+            {
+                events = DataCache.getInstance().getPersonEvents().get(personID);
+            }
             expandableListView.setAdapter(new ExpandableListAdapter(family, events, relationships));
         }
 
@@ -91,6 +121,36 @@ public class PersonActivity extends AppCompatActivity
         }
 
         return family;
+    }
+
+    private boolean settingsChecker(String personID)
+    {
+        Person person = DataCache.getInstance().getPersons().get(personID);
+        Set<String> fatherSide = DataCache.getInstance().getFatherSide();
+        Set<String> motherSide = DataCache.getInstance().getMotherSide();
+        Settings settings = DataCache.getInstance().getSettings();
+
+        if(person.getGender().equals("m") && !settings.isShowMale())
+        {
+            return false;
+        }
+
+        if(person.getGender().equals("f") && !settings.isShowFemale())
+        {
+            return false;
+        }
+
+        if(fatherSide.contains(personID) && !settings.isFatherSide())
+        {
+            return false;
+        }
+        if(motherSide.contains(personID) && !settings.isMotherSide())
+        {
+            return false;
+        }
+
+
+        return true;
     }
 
 
@@ -230,11 +290,11 @@ public class PersonActivity extends AppCompatActivity
         {
             final Person person = family.get(childPosition);
 
-            if(!settingsChecker(person.getId()))
+            /*if(!settingsChecker(person.getId()))
             {
                 personView = null;
                 return;
-            }
+            }*/
 
             Drawable icon;
 
@@ -337,7 +397,7 @@ public class PersonActivity extends AppCompatActivity
             startActivity(intent);
         }
 
-        private boolean settingsChecker(String personID)
+        /*private boolean settingsChecker(String personID)
         {
             Person person = DataCache.getInstance().getPersons().get(personID);
             Set<String> fatherSide = DataCache.getInstance().getFatherSide();
@@ -365,7 +425,7 @@ public class PersonActivity extends AppCompatActivity
 
 
             return true;
-        }
+        }*/
 
 
         @Override
